@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sliding Puzzle</title>
+    <style>
+        html {
+            background: radial-gradient(circle, #FF8961, #FFFB89, #74BDCB, #0E42C4) fixed;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 4rem;
+            display: none; /* Initially hidden */
+        }
+
+        #tiles {
+            width: 600px; /* Adjusted for 8x8 tiles */
+            margin: 0 auto;
+            position: relative;
+            background-color: white;
+            padding: 8px;
+            border-radius: 0.5rem;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-gap: 2px; /* Space between tiles */
+        }
+
+        .tile {
+            width: 70px; /* Width of each tile */
+            height: 70px; /* Height of each tile */
+            border: none;
+            cursor: pointer;
+            background-size: 560px 560px; /* Adjusted based on image size */
+            background-repeat: no-repeat;
+        }
+
+        .empty {
+            background-color: transparent; /* Empty tile style */
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1 id="winMessage">Well Done!</h1>
+        <div id="tiles"></div>
+    </main>
+
+    <script>
+        let size = 8;
+        let numberOfTiles = size * size;
+        let emptyTileIndex = numberOfTiles - 1; // Last tile will be empty (tile 64)
+        let shuffled = false;
+        let tileOrder = [];  // Track the tile order
+        const buttonContainer = document.getElementById('tiles');
+
+        // Function to initialize the game
+        function initializeGame() {
+            loadTiles(size);
+            shuffleTiles();
+            displayTiles();
+        }
+
+        // Load tiles into the grid
+        function loadTiles(size) {
+            for (let i = 0; i < numberOfTiles; i++) {
+                tileOrder[i] = i; // Assign index numbers to tiles
+                const tile = document.createElement('button');
+                tile.className = 'tile';
+                tile.id = `tile${i}`;
+                tile.setAttribute('data-index', i);
+                tile.addEventListener('click', () => clickTile(i));
+                buttonContainer.appendChild(tile);
+            }
+        }
+
+        // Shuffle tiles on page load
+        function shuffleTiles() {
+            for (let i = 0; i < numberOfTiles; i++) {
+                const randomIndex = Math.floor(Math.random() * numberOfTiles);
+                [tileOrder[i], tileOrder[randomIndex]] = [tileOrder[randomIndex], tileOrder[i]];
+            }
+        }
+
+        // Display tiles with background images
+        function displayTiles() {
+            for (let i = 0; i < numberOfTiles; i++) {
+                const tile = document.getElementById(`tile${i}`);
+                if (i === emptyTileIndex) {
+                    tile.classList.add('empty');
+                    tile.style.background = 'none'; // Empty tile has no background
+                } else {
+                    tile.style.backgroundImage = `url('https://res.cloudinary.com/dvaxzb2pn/image/upload/v1727425869/square_mm_okzanp.png')`;
+                    const x = (tileOrder[i] % size) * 70; // Calculate x position
+                    const y = Math.floor(tileOrder[i] / size) * 70; // Calculate y position
+                    tile.style.backgroundPosition = `-${x}px -${y}px`; // Set background position
+                }
+            }
+        }
+
+        // Handle tile click events
+        function clickTile(clickedIndex) {
+            const emptyIndex = emptyTileIndex;
+
+            // Check if the clicked tile is adjacent to the empty space
+            const isAdjacent = 
+                clickedIndex === emptyIndex - 1 && emptyIndex % size !== 0 || // left
+                clickedIndex === emptyIndex + 1 && clickedIndex % size !== 0 || // right
+                clickedIndex === emptyIndex - size || // up
+                clickedIndex === emptyIndex + size; // down
+
+            if (isAdjacent) {
+                console.log(`Tile ${clickedIndex + 1} moved successfully.`);
+                // alert(`Tile ${clickedIndex + 1} moved successfully.`);
+                swapTiles(clickedIndex, emptyIndex);
+                checkWin();
+            } else {
+                console.log(`Tile ${clickedIndex + 1} cannot be moved. Not adjacent to empty space.`);
+                // alert(`Tile ${clickedIndex + 1} cannot be moved. Not adjacent to empty space.`);
+            }
+        }
+
+        // Swap the clicked tile with the empty tile
+        function swapTiles(clickedIndex, emptyIndex) {
+            tileOrder[emptyIndex] = tileOrder[clickedIndex];
+            tileOrder[clickedIndex] = numberOfTiles - 1; // Mark the new empty tile
+            emptyTileIndex = clickedIndex; // Update the empty tile index
+            displayTiles(); // Refresh the tile display
+        }
+
+        // Check if the player has won the game
+        function checkWin() {
+            for (let i = 0; i < numberOfTiles; i++) {
+                if (tileOrder[i] !== i) {
+                    return false;
+                }
+            }
+            document.getElementById('winMessage').style.display = 'block'; // Show win message
+            alert("Congratulations! You solved the puzzle! Now do it twice in a row to get the secret url for the next easter egg!");
+            return true;
+        }
+
+        // Initialize the game
+        initializeGame();
+    </script>
+</body>
+</html>
